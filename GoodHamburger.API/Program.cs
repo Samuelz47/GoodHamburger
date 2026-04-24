@@ -1,4 +1,6 @@
 using GoodHamburger.Application.Interfaces;
+using GoodHamburger.Application.Repositories;
+using GoodHamburger.Application.Services;
 using GoodHamburger.Infrastructure.Data;
 using GoodHamburger.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +22,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,4 @@
-namespace GoodHamburger.Application.Interfaces;
+namespace GoodHamburger.Application.Repositories;
 
 public interface IUnitOfWork
 {

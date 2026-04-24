@@ -1,6 +1,6 @@
 using GoodHamburger.Domain.Entities;
 
-namespace GoodHamburger.Application.Interfaces;
+namespace GoodHamburger.Application.Repositories;
 
 public interface IPedidoRepository
 {

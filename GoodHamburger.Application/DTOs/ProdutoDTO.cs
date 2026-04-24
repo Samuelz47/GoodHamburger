@@ -6,6 +6,6 @@ public class ProdutoDTO
 {
     public int Id { get; set; }
     public string Nome { get; set; }
-    public CategoriaProduto Categoria { get; set; }
+    public string Categoria { get; set; }
     public decimal Preco { get; set; }
 }

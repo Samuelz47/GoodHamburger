@@ -1,4 +1,4 @@
-using GoodHamburger.Application.Interfaces;
+using GoodHamburger.Application.Repositories;
 using GoodHamburger.Infrastructure.Data;
 
 namespace GoodHamburger.Infrastructure.Repositories;

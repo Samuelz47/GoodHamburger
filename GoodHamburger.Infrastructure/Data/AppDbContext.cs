@@ -10,15 +10,10 @@ public class AppDbContext : DbContext
     
     public DbSet<Produto> Produtos { get; set; }
     public DbSet<Pedido> Pedidos { get; set; }
-    public DbSet<ItemPedido> ItensPedido { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        
-        // Ignorar propriedades calculadas em memória
-        builder.Entity<ItemPedido>()
-            .Ignore(i => i.PrecoTotal);
 
         builder.Entity<Produto>(e =>
         {

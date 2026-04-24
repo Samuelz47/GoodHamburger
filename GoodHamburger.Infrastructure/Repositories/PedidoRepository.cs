@@ -1,4 +1,4 @@
-using GoodHamburger.Application.Interfaces;
+using GoodHamburger.Application.Repositories;
 using GoodHamburger.Domain.Entities;
 using GoodHamburger.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -17,14 +17,12 @@ public class PedidoRepository : IPedidoRepository
     public async Task<Pedido?> GetPedidoByIdAsync(int id)
     {
         return await _context.Pedidos.Include(p => p.Items)
-            .ThenInclude(i => i.Produto)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<IEnumerable<Pedido>> GetPedidosAsync()
     {
         return await _context.Pedidos.Include(p => p.Items)
-            .ThenInclude(i => i.Produto)
             .AsNoTracking()
             .ToListAsync();
     }

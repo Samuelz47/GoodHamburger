@@ -1,4 +1,4 @@
-using GoodHamburger.Application.Interfaces;
+using GoodHamburger.Application.Repositories;
 using GoodHamburger.Domain.Entities;
 using GoodHamburger.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +14,13 @@ public class ProdutoRepository : IProdutoRepository
         _context = context;
     }
 
-    public async Task<Produto?> GetProdutoByName(string nome)
+    public async Task<Produto?> GetProdutoById(int id)
     {
-        return await _context.Produtos.FirstOrDefaultAsync(p => p.Nome == nome);
+        return await _context.Produtos.FirstOrDefaultAsync(p => p.Id == id);
+    }
+    
+    public async Task<IEnumerable<Produto>> GetAllProdutosAsync()
+    {
+        return await _context.Produtos.AsNoTracking().ToListAsync();
     }
 }
