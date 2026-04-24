@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
         {
             e.HasKey(p => p.Id);
             e.Property(p => p.Nome).HasMaxLength(50).IsRequired();
+            e.HasIndex(p => p.Nome).IsUnique();
             e.Property(p => p.Preco).IsRequired().HasColumnType("decimal(10,2)");
             e.Property(p => p.Categoria).IsRequired().HasConversion<string>();
         });
