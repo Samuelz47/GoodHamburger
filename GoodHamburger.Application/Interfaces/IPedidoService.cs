@@ -7,6 +7,6 @@ public interface IPedidoService
     Task<PedidoDTO?> GetPedidoAsync(int pedidoId);
     Task<IEnumerable<PedidoDTO>> GetPedidosAsync();
     Task<PedidoDTO?> CreatePedidoAsync(PedidoForRegistrationDTO pedidoForRegistration);
-    Task<PedidoDTO?> UpdatePedidoAsync(PedidoForUpdateDTO pedidoForUpdate);
+    Task<PedidoDTO?> UpdatePedidoAsync(int id, PedidoForUpdateDTO pedidoForUpdate);
     Task<bool> DeletePedidoAsync(int pedidoId);
 }

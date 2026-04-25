@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
         builder.Entity<Pedido>(e =>
         {
             e.HasKey(p => p.Id);
+            e.HasMany(p => p.Items).WithMany().UsingEntity(j => j.ToTable("PedidoProdutos"));
             e.Property(p => p.SubTotal).IsRequired().HasColumnType("decimal(10,2)");
             e.Property(p => p.Total).IsRequired().HasColumnType("decimal(10,2)");
         });

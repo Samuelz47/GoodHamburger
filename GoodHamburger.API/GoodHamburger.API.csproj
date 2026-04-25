@@ -20,9 +20,6 @@
         <ProjectReference Include="..\GoodHamburger.Infrastructure\GoodHamburger.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
-    <ItemGroup>
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>

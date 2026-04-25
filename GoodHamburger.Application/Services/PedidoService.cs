@@ -50,14 +50,14 @@ public class PedidoService : IPedidoService
         return pedidosDto;
     }
 
-    public async Task<PedidoDTO?> UpdatePedidoAsync(PedidoForUpdateDTO pedidoForUpdate)
+    public async Task<PedidoDTO?> UpdatePedidoAsync(int id, PedidoForUpdateDTO pedidoForUpdate)
     {
         if (pedidoForUpdate.ProdutosIds is null || !pedidoForUpdate.ProdutosIds.Any())
             throw new ArgumentException("A atualização do pedido deve conter pelo menos um item.");
         
-        var pedido = await _pedidoRepository.GetPedidoByIdAsync(pedidoForUpdate.Id);
+        var pedido = await _pedidoRepository.GetPedidoByIdAsync(id);
         
-        if(pedido is null) return null;
+        if(pedido is null) throw new KeyNotFoundException("O pedido não foi localizado.");;
         
         await CalcularPedidosAsync(pedido, pedidoForUpdate.ProdutosIds);
         await _pedidoRepository.UpdatePedidoAsync(pedido);
@@ -85,7 +85,7 @@ public class PedidoService : IPedidoService
         foreach (var item in produtosIds)
         {
             var produto = await _produtoRepository.GetProdutoById(item);
-            if (produto == null) throw new ArgumentException($"O produto não existe no cardápio.");
+            if (produto == null) throw new KeyNotFoundException("O produto não existe no cardápio.");
             
             subTotal += produto.Preco;
             
