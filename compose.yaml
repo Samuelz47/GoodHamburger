@@ -12,5 +12,16 @@
     volumes:
       - sqlite_data:/app/data
 
+  goodhamburger.blazor:
+    image: goodhamburger-blazor:latest
+    build:
+      context: .
+      dockerfile: GoodHamburger.Blazor/Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - goodhamburger.api
+
 volumes:
   sqlite_data:
+

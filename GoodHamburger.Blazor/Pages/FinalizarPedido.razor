@@ -1,0 +1,175 @@
+@page "/finalizar-pedido"
+@using GoodHamburger.Blazor.Models
+@using GoodHamburger.Blazor.Services
+@inject CarrinhoService CarrinhoService
+@inject NavigationManager Navigation
+
+<PageTitle>@(pedidoId.HasValue ? "Editar Pedido" : "Finalizar Pedido") - Good Hamburger</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4">@(pedidoId.HasValue ? $"Editando Pedido #{pedidoId}" : "Seu Pedido")</h1>
+
+    @if (!CarrinhoService.Itens.Any())
+    {
+        <div class="alert alert-info">
+            Seu carrinho está vazio. <a href="/cardapio" class="alert-link">Voltar para o cardápio.</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Preço</th>
+                                    <th style="width: 100px"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in CarrinhoService.Itens)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">@item.Nome</div>
+                                            <small class="text-muted">@item.Categoria</small>
+                                        </td>
+                                        <td class="align-middle">@item.Preco.ToString("C")</td>
+                                        <td class="text-end align-middle">
+                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => CarrinhoService.RemoverProduto(item.Id)">
+                                                Remover
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Resumo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span>@subtotal.ToString("C")</span>
+                        </div>
+                        
+                        @if (descontoPercentual > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2 text-success fw-bold">
+                                <span>Desconto (@descontoPercentual%)</span>
+                                <span>-@valorDesconto.ToString("C")</span>
+                            </div>
+                        }
+
+                        <hr />
+                        
+                        <div class="d-flex justify-content-between mb-4 fs-4 fw-bold text-primary">
+                            <span>Total</span>
+                            <span>@total.ToString("C")</span>
+                        </div>
+
+                        <button class="btn btn-success w-100 btn-lg" @onclick="ConfirmarPedido" disabled="@processando">
+                            @if (processando)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span> Processando...</span>
+                            }
+                            else
+                            {
+                                <span>@(pedidoId.HasValue ? "Salvar Alterações" : "Confirmar Pedido")</span>
+                            }
+                        </button>
+                        
+                        <button class="btn btn-link w-100 mt-2 text-decoration-none text-muted" @onclick='() => Navigation.NavigateTo("/cardapio")'>
+                            Continuar Comprando
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "id")]
+    public int? pedidoId { get; set; }
+
+    private bool processando;
+    private decimal subtotal => CarrinhoService.Itens.Sum(p => p.Preco);
+    private decimal total;
+    private int descontoPercentual;
+    private decimal valorDesconto => subtotal - total;
+
+    protected override void OnInitialized()
+    {
+        CarrinhoService.OnChange += StateHasChanged;
+        CalcularDesconto();
+    }
+
+    protected override void OnParametersSet()
+    {
+        CalcularDesconto();
+    }
+
+    private void CalcularDesconto()
+    {
+        var categorias = CarrinhoService.Itens.Select(p => p.Categoria).ToList();
+        
+        bool temSanduiche = categorias.Contains("Sanduiche");
+        bool temBatata = categorias.Contains("BatataFrita");
+        bool temRefri = categorias.Contains("Refrigerante");
+
+        if (temSanduiche && temBatata && temRefri)
+        {
+            descontoPercentual = 20;
+            total = subtotal * 0.8m;
+        }
+        else if (temSanduiche && temRefri)
+        {
+            descontoPercentual = 15;
+            total = subtotal * 0.85m;
+        }
+        else if (temSanduiche && temBatata)
+        {
+            descontoPercentual = 10;
+            total = subtotal * 0.9m;
+        }
+        else
+        {
+            descontoPercentual = 0;
+            total = subtotal;
+        }
+    }
+
+    private async Task ConfirmarPedido()
+    {
+        processando = true;
+        bool sucesso;
+
+        if (pedidoId.HasValue)
+        {
+            sucesso = await CarrinhoService.AtualizarPedidoAsync(pedidoId.Value);
+        }
+        else
+        {
+            sucesso = await CarrinhoService.FinalizarPedidoAsync();
+        }
+
+        processando = false;
+
+        if (sucesso)
+        {
+            Navigation.NavigateTo("/pedidos");
+        }
+    }
+}

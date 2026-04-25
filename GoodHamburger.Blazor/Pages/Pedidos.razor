@@ -1,0 +1,128 @@
+@page "/pedidos"
+@using GoodHamburger.Blazor.Models
+@using GoodHamburger.Blazor.Services
+@inject HttpClient Http
+@inject CarrinhoService CarrinhoService
+@inject NavigationManager Navigation
+
+<PageTitle>Lista de Pedidos - Good Hamburger</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Lista de Pedidos</h1>
+
+    @if (pedidos == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+    }
+    else if (!pedidos.Any())
+    {
+        <div class="alert alert-info">
+            Nenhum pedido realizado ainda.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px">ID</th>
+                        <th>Itens</th>
+                        <th class="text-end">Subtotal</th>
+                        <th class="text-center">Desconto</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-center" style="width: 180px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pedido in pedidos)
+                    {
+                        <tr>
+                            <td><strong>#@pedido.Id</strong></td>
+                            <td>
+                                @if (pedido.Items != null && pedido.Items.Any())
+                                {
+                                    <ul class="list-unstyled mb-0 small">
+                                        @foreach (var item in pedido.Items)
+                                        {
+                                            <li><span class="badge bg-light text-dark border me-1">@item.Categoria</span> @item.Nome</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted italic">Sem itens</span>
+                                }
+                            </td>
+                            <td class="text-end">@pedido.SubTotal.ToString("C")</td>
+                            <td class="text-center">
+                                @if (pedido.DescontoPercentual > 0)
+                                {
+                                    <span class="badge bg-success">
+                                        -@pedido.DescontoPercentual.ToString("0")%
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                            <td class="text-end fw-bold text-primary">@pedido.Total.ToString("C")</td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-warning" title="Editar" @onclick="() => EditarPedido(pedido)">
+                                        Editar
+                                    </button>
+                                    <button class="btn btn-outline-danger" title="Excluir" @onclick="() => ExcluirPedido(pedido.Id)">
+                                        Excluir
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Pedido>? pedidos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarPedidos();
+    }
+
+    private async Task CarregarPedidos()
+    {
+        try 
+        {
+            pedidos = await Http.GetFromJsonAsync<List<Pedido>>("api/pedido");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar pedidos: {ex.Message}");
+            pedidos = new List<Pedido>();
+        }
+    }
+
+    private async Task ExcluirPedido(int id)
+    {
+        if (await CarrinhoService.ExcluirPedidoAsync(id))
+        {
+            await CarregarPedidos();
+        }
+    }
+
+    private void EditarPedido(Pedido pedido)
+    {
+        CarrinhoService.CarregarItensEduicao(pedido.Items);
+        Navigation.NavigateTo($"/finalizar-pedido?id={pedido.Id}");
+    }
+}
+

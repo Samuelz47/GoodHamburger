@@ -1,7 +1,134 @@
 ﻿@page "/"
+@using GoodHamburger.Blazor.Models
+@using GoodHamburger.Blazor.Services
+@inject ProdutoService ProdutoService
+@inject CarrinhoService CarrinhoService
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Cardápio - Good Hamburger</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5 fw-bold text-primary">🍔 Good Hamburger</h1>
+        <div class="position-relative">
+            <button class="btn btn-lg btn-primary shadow-sm" @onclick='() => Navigation.NavigateTo("/finalizar-pedido")'>
+                Meu Pedido
+                @if (CarrinhoService.Itens.Any())
+                {
+                    <span class="badge bg-danger ms-2">@CarrinhoService.Itens.Count</span>
+                }
+            </button>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <div class="bg-light p-5 rounded-3 mb-4 shadow-sm border text-center">
+        <h2 class="h3 fw-bold">O melhor hambúrguer da cidade!</h2>
+        <p class="lead text-muted">Aproveite nossos combos especiais e ganhe descontos imperdíveis:</p>
+        <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
+            <span class="badge rounded-pill bg-success p-2 px-3 shadow-sm">Combo 20% OFF: Sanduíche + Batata + Refri</span>
+            <span class="badge rounded-pill bg-success p-2 px-3 shadow-sm">Combo 15% OFF: Sanduíche + Refri</span>
+            <span class="badge rounded-pill bg-success p-2 px-3 shadow-sm">Combo 10% OFF: Sanduíche + Batata</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensagemErro))
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm border-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @mensagemErro
+            <button type="button" class="btn-close" @onclick="() => mensagemErro = null"></button>
+        </div>
+    }
+
+    <h3 class="mb-4 border-bottom pb-2">Nosso Cardápio</h3>
+
+    @if (produtos == null)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+    }
+    else if (!produtos.Any())
+    {
+        <div class="alert alert-info shadow-sm">
+            Nenhum produto disponível no momento.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            @foreach (var produto in produtos)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm transition-card border-0">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title fw-bold">@produto.Nome</h5>
+                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">@produto.Categoria</span>
+                            </div>
+                            <p class="card-text fs-3 fw-bold text-success">
+                                @produto.Preco.ToString("C")
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-0 p-4 pt-0">
+                            <button class="btn btn-lg @(EstaNoCarrinho(produto.Id) ? "btn-success" : "btn-outline-primary") w-100 rounded-pill shadow-sm" 
+                                    @onclick="() => AdicionarAoCarrinho(produto)">
+                                @if (EstaNoCarrinho(produto.Id))
+                                {
+                                    <span>Adicionado</span>
+                                }
+                                else
+                                {
+                                    <span>Adicionar ao Pedido</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .transition-card {
+        transition: transform .2s, box-shadow .2s;
+    }
+    .transition-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
+
+@code {
+    private List<Produto>? produtos;
+    private string? mensagemErro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        produtos = await ProdutoService.GetProdutosAsync();
+        CarrinhoService.OnChange += StateHasChanged;
+    }
+
+    private void AdicionarAoCarrinho(Produto produto)
+    {
+        try
+        {
+            mensagemErro = null;
+            CarrinhoService.AdicionarProduto(produto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            mensagemErro = ex.Message;
+        }
+    }
+
+    private bool EstaNoCarrinho(int id) => CarrinhoService.Itens.Any(p => p.Id == id);
+    
+    public void Dispose()
+    {
+        CarrinhoService.OnChange -= StateHasChanged;
+    }
+}
+
